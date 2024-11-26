@@ -28,6 +28,7 @@ matplotlib = "^3.9.2"
 ruff = "^0.7.4"
 pre-commit = "^4.0.1"
 debugpy = "^1.8.7"
+mypy = "^1.13.0"
 
 
 [build-system]
@@ -37,3 +38,36 @@ build-backend = "poetry.core.masonry.api"
 [tool.codespell]
 skip = '*.lock'
 ignore-words = 'codespell_ignore_words.txt'
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+# Specify the files and directories to check
+files = ["launch_reentry_emissions", "tests"]
+
+# Disallow untyped function definitions
+disallow_untyped_defs = true
+
+# Disallow untyped calls
+disallow_untyped_calls = true
+
+# Disallow untyped decorated functions
+disallow_untyped_decorators = true
+
+# Disallow usage of Any type
+disallow_any_explicit = true
+
+# Enable strict optional checking
+strict_optional = true
+
+# Show error codes in output
+show_error_codes = true
+
+# Warn about unused ignores
+warn_unused_ignores = true
+
+# Warn about unreachable code
+warn_unreachable = true
+
+# Warn about unused configurations
+warn_unused_configs = true

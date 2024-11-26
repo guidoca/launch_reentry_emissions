@@ -5,6 +5,7 @@ Space Vehicle Emissions Modeling. Washington, DC: The National Academies
 Press. https://doi.org/10.17226/26142
 """
 
+import dataclasses
 import typing
 
 import numpy as np
@@ -22,13 +23,22 @@ H_STRATO = 15.0
 METERS_TO_KM = 1e-3
 """Conversion between meters and km"""
 
-M_CO = 28.0
-M_CO2 = 44.0
-M_BC = 12.0
-M_CH4 = 16.0
-M_H2O = 18.0
-M_H = 1.0
-M_H2 = 2.0
+
+dataclasses.dataclass(init=False, frozen=True)
+
+
+class MolarMassSpecies:
+    """Molar masses used for the PlumePostcombustionModel."""
+
+    nox: float
+    co2: float = 44.0
+    co: float = 28.0
+    ch4: float = 16.0
+    bc: float = 12.0
+    h2o: float = 18.0
+    h: float = 1.0
+    h2: float = 2.0
+    oh: float = 17.0
 
 
 class PrimaryEmissionIndexes(typing.NamedTuple):
@@ -48,12 +58,12 @@ class PrimaryEmissionIndexes(typing.NamedTuple):
 class FinalEmissionIndexes(typing.NamedTuple):
     """Final emission indexes for the PlumePostcombustionModel."""
 
-    nox: npt.NDArray[np.float64] | float
-    co2: npt.NDArray[np.float64] | float
-    co: npt.NDArray[np.float64] | float
+    nox: npt.NDArray[np.floating] | float
+    co2: npt.NDArray[np.floating] | float
+    co: npt.NDArray[np.floating] | float
     ch4: float
-    bc: npt.NDArray[np.float64] | float
-    h2o: npt.NDArray[np.float64] | float
+    bc: npt.NDArray[np.floating] | float
+    h2o: npt.NDArray[np.floating] | float
     h: float
     h2: float
     oh: float
@@ -71,34 +81,29 @@ class PlumePostcombustionModel:
 
     def __init__(
         self,
-        h: npt.NDArray[np.float64] | float | None = None,
-        primary_emission_indexes: PrimaryEmissionIndexes = None,
+        primary_emission_indexes: PrimaryEmissionIndexes,
+        h: npt.NDArray[np.floating] | float | None = None,
     ):
         self.h = h
         self.primary_emission_indexes = primary_emission_indexes
 
     def evaluate(
         self,
-        h: npt.NDArray[np.float64] | float | None = None,
-        primary_emission_indexes: PrimaryEmissionIndexes = None,
+        h: npt.NDArray[np.floating] | float | None = None,
     ) -> FinalEmissionIndexes:
         """Evaluate the plume postcombustion model.
 
         Args:
             h: Altitude [m].
-            species: Primary emission indexes.
 
         Returns:
             Final emission indexes.
         """
-        if h is not None:
-            self.h = h
-        else:
+        if h is None and self.h is not None:
             h = self.h
-        if primary_emission_indexes is not None:
-            self.primary_emission_indexes = primary_emission_indexes
         else:
-            primary_emission_indexes = self.primary_emission_indexes
+            raise ValueError("Altitude h must be provided.")
+        primary_emission_indexes = self.primary_emission_indexes
         return FinalEmissionIndexes(
             nox=PlumePostcombustionModel.final_nitrogen_oxides(
                 h, primary_emission_indexes.nox
@@ -128,11 +133,12 @@ class PlumePostcombustionModel:
             oh=primary_emission_indexes.oh,
         )
 
+    @staticmethod
     def final_nitrogen_oxides(
-        h: npt.NDArray[np.float64] | float,
-        ei_nox_p: float,
-        ei_nox_s_sl: float = EI_NOX_S_SL,
-    ) -> npt.NDArray[np.float64] | float:
+        h: npt.NDArray[np.floating] | float,
+        ei_nox_p: npt.NDArray[np.floating] | float,
+        ei_nox_s_sl: npt.NDArray[np.floating] | float = EI_NOX_S_SL,
+    ) -> npt.NDArray[np.floating] | float:
         """Calculate the nitrogen oxides postcombustion emission index.
 
         Sums up primary and secondary emissions from interaction of the plume with atmosphere.
@@ -143,17 +149,18 @@ class PlumePostcombustionModel:
         ei_nox_s = ei_nox_s_sl * np.exp(-0.26 * h * METERS_TO_KM)
         return ei_nox_p + ei_nox_s
 
+    @staticmethod
     def final_carbon_dioxide(
-        h: npt.NDArray[np.float64] | float,
+        h: npt.NDArray[np.floating] | float,
         ei_co2_p: float,
         ei_co_p: float,
         ei_ch4_p: float,
         ei_bc_p: float,
-        mw_co2: float = M_CO2,
-        mw_co: float = M_CO,
-        mw_ch4: float = M_CH4,
-        mw_bc: float = M_BC,
-    ) -> npt.NDArray[np.float64] | float:
+        mw_co2: float = MolarMassSpecies.co2,
+        mw_co: float = MolarMassSpecies.co,
+        mw_ch4: float = MolarMassSpecies.ch4,
+        mw_bc: float = MolarMassSpecies.bc,
+    ) -> npt.NDArray[np.floating] | float:
         """Calculate the carbon dioxide postcombustion emission index."""
         # Calculate the co2 emissions from methane post-combustion. Assumed 0, as no model available.
         ei_from_ch4_f = 0.0 * ei_ch4_p
@@ -177,9 +184,9 @@ class PlumePostcombustionModel:
         ei_h_p: float,
         ei_h2_p: float,
         ei_oh_p: float,
-        mw_h2o: float = M_H2O,
-        mw_h: float = M_H,
-        mw_h2: float = M_H2,
+        mw_h2o: float = MolarMassSpecies.h2o,
+        mw_h: float = MolarMassSpecies.h,
+        mw_h2: float = MolarMassSpecies.h2,
     ) -> float:
         """Calculate the water vapor postcombustion emission index.
 
@@ -201,8 +208,8 @@ class PlumePostcombustionModel:
 
     @staticmethod
     def final_black_carbon_stratosphere(
-        h: npt.NDArray[np.float64] | float, ei_bc_p: float = EI_BC_P
-    ) -> npt.NDArray[np.float64] | float:
+        h: npt.NDArray[np.floating] | float, ei_bc_p: float = EI_BC_P
+    ) -> npt.NDArray[np.floating] | float:
         """Calculate the black carbon postcombustion emission index from 15 km altitude using the exponential model.
 
         Note that the burned fraction should be added as CO2 emitted with the corresponding molecular weight fraction.
@@ -218,8 +225,8 @@ class PlumePostcombustionModel:
 
     @staticmethod
     def final_black_carbon(
-        h: npt.NDArray[np.float64] | float, ei_bc_p: float = EI_BC_P
-    ) -> npt.NDArray[np.float64]:
+        h: npt.NDArray[np.floating] | float, ei_bc_p: float = EI_BC_P
+    ) -> npt.NDArray[np.floating]:
         """Calculate the black carbon postcombustion emission index.
 
         Note that the burned fraction should be added as CO2 emitted with the corresponding molecular weight fraction.
@@ -245,8 +252,10 @@ class PlumePostcombustionModel:
 
     @staticmethod
     def final_carbon_monoxide_lower(
-        h: npt.NDArray[np.float64] | float, ei_co_p: float, ei_co2_p: float
-    ) -> npt.NDArray[np.float64] | float:
+        h: npt.NDArray[np.floating] | float,
+        ei_co_p: npt.NDArray[np.floating] | float,
+        ei_co2_p: npt.NDArray[np.floating] | float,
+    ) -> npt.NDArray[np.floating] | float:
         """Calculate the carbon monoxide postcombustion emission index at lower altitudes.
 
 
@@ -262,8 +271,10 @@ class PlumePostcombustionModel:
 
     @staticmethod
     def final_carbon_monoxide(
-        h: npt.NDArray[np.float64] | float, ei_co_p: float, ei_co2_p: float
-    ) -> npt.NDArray[np.float64]:
+        h: npt.NDArray[np.floating] | float,
+        ei_co_p: npt.NDArray[np.floating] | float,
+        ei_co2_p: npt.NDArray[np.floating] | float,
+    ) -> npt.NDArray[np.floating]:
         """Calculate the carbon monoxide postcombustion emission index clamping maximum.
 
 
@@ -273,7 +284,7 @@ class PlumePostcombustionModel:
             ei_co2_p: Primary emission index of carbon dioxide [M_CO2/M_EX].
 
         Returns:
-            Final carbon monoxide emission index [M_CO/M_EX].
+            Final carbon monoxide emission index [MM_CO/M_EX].
         """
         # Calculate the carbon monoxide postcombustion fraction without clamping at lower altitudes
         ei_co_f_lower = PlumePostcombustionModel.final_carbon_monoxide_lower(
