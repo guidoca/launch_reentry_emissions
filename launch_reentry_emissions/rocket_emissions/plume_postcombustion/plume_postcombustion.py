@@ -24,9 +24,7 @@ METERS_TO_KM = 1e-3
 """Conversion between meters and km"""
 
 
-dataclasses.dataclass(init=False, frozen=True)
-
-
+@dataclasses.dataclass(init=False, frozen=True)
 class MolarMassSpecies:
     """Molar masses used for the PlumePostcombustionModel."""
 
@@ -84,6 +82,12 @@ class PlumePostcombustionModel:
         primary_emission_indexes: PrimaryEmissionIndexes,
         h: npt.NDArray[np.floating] | float | None = None,
     ):
+        """Initialize the PlumePostcombustionModel.
+
+        Args:
+            primary_emission_indexes: Primary emission indexes.
+            h: Altitude [m]. Defaults to None.
+        """
         self.h = h
         self.primary_emission_indexes = primary_emission_indexes
 
@@ -101,7 +105,7 @@ class PlumePostcombustionModel:
         """
         if h is None and self.h is not None:
             h = self.h
-        else:
+        elif h is None:
             raise ValueError("Altitude h must be provided.")
         primary_emission_indexes = self.primary_emission_indexes
         return FinalEmissionIndexes(
@@ -144,6 +148,12 @@ class PlumePostcombustionModel:
         Sums up primary and secondary emissions from interaction of the plume with atmosphere.
 
         Args:
+            h: Altitude [m].
+            ei_nox_p: Primary emission index of nitrogen oxides [M_NOx/M_EX].
+            ei_nox_s_sl: Secondary emission index of nitrogen oxides at sea level [M_NOx/M_EX].
+
+        Returns:
+            Final nitrogen oxides emission index [M_NOx/M_EX].
         """
         # Calculate the co2 emissions from carbon monoxide post-combustion
         ei_nox_s = ei_nox_s_sl * np.exp(-0.26 * h * METERS_TO_KM)
@@ -161,7 +171,22 @@ class PlumePostcombustionModel:
         mw_ch4: float = MolarMassSpecies.ch4,
         mw_bc: float = MolarMassSpecies.bc,
     ) -> npt.NDArray[np.floating] | float:
-        """Calculate the carbon dioxide postcombustion emission index."""
+        """Calculate the carbon dioxide postcombustion emission index.
+
+        Args:
+            h: Altitude [m].
+            ei_co2_p: Primary emission index of carbon dioxide [M_CO2/M_EX].
+            ei_co_p: Primary emission index of carbon monoxide [M_CO/M_EX].
+            ei_ch4_p: Primary emission index of methane [M_CH4/M_EX].
+            ei_bc_p: Primary emission index of black carbon [M_BC/M_EX].
+            mw_co2: Molecular weight of carbon dioxide [g/mol].
+            mw_co: Molecular weight of carbon monoxide [g/mol].
+            mw_ch4: Molecular weight of methane [g/mol].
+            mw_bc: Molecular weight of black carbon [g/mol].
+
+        Returns:
+            Final carbon dioxide emission index [M_CO2/M_EX].
+        """
         # Calculate the co2 emissions from methane post-combustion. Assumed 0, as no model available.
         ei_from_ch4_f = 0.0 * ei_ch4_p
         # Calculate the co2 emissions from black carbon post-combustion
@@ -202,6 +227,9 @@ class PlumePostcombustionModel:
             mw_h2o: Molecular weight of water [g/mol].
             mw_h: Molecular weight of hydrogen [g/mol].
             mw_h2: Molecular weight of hydrogen molecules [g/mol].
+
+        Returns:
+            Final water vapor emission index [M_H2O/M_EX].
 
         """
         return ei_h2o_p + mw_h2o / mw_h * ei_h_p + mw_h2o / mw_h2 * ei_h2_p + ei_oh_p
