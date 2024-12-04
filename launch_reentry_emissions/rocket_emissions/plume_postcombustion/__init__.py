@@ -1,7 +1,7 @@
 """Module containing plume postcombustion physics"""
 
 from launch_reentry_emissions.rocket_emissions.plume_postcombustion.plume_postcombustion import (
-    PlumePostcombustionModel,
+    PlumePostcombustionEmissionIndexes,
 )
 
-__all__ = ["PlumePostcombustionModel"]
+__all__ = ["PlumePostcombustionEmissionIndexes"]

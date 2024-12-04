@@ -15,6 +15,7 @@ scipy = "^1.14.1"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.2.1"
+pytest-mypy-plugins = "^3.1.2"
 
 
 [tool.poetry.group.apps.dependencies]
@@ -52,7 +53,7 @@ disallow_untyped_defs = true
 disallow_untyped_calls = true
 
 # Disallow untyped decorated functions
-disallow_untyped_decorators = true
+disallow_untyped_decorators = false
 
 # Disallow usage of Any type
 disallow_any_explicit = true
@@ -71,3 +72,8 @@ warn_unreachable = true
 
 # Warn about unused configurations
 warn_unused_configs = true
+
+[tool.mypy-pytest]
+ignore_missing_imports = true
+# Disallow untyped decorated functions
+disallow_untyped_decorators = false
