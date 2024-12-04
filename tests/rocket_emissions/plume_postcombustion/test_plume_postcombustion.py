@@ -1,3 +1,5 @@
+"""Tests for the plume_postcombustion module."""
+
 import pathlib
 
 import numpy as np
@@ -132,7 +134,6 @@ def test_nitrogen_oxides_postcombustion_array() -> None:
 
 def test_nitrogen_oxides_postcombustion_decreasing() -> None:
     """Test nitrogen_oxides function decreases emissions at higher altitudes."""
-
     size = 50
     h = np.linspace(0.0, 90e3, size, dtype=np.float64)
     ei_nox_p = EI_NOX_S_SL

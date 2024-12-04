@@ -113,7 +113,7 @@ class PlumePostcombustionEmissionIndexes:
         primary_emission_indexes_df: pd.DataFrame,
         h: npt.NDArray[np.floating] | float | None = None,
     ) -> "PlumePostcombustionEmissionIndexes":
-        """Initialize the PlumePostcombustion model from a CSV file.
+        """Initialize the model from a CSV file.
 
         Args:
             primary_emission_indexes_df: DataFrame containing the primary emission indexes.
@@ -122,7 +122,6 @@ class PlumePostcombustionEmissionIndexes:
         Returns:
             PlumePostcombustionEmissionIndexes.
         """
-
         # Convert the column names of the dataframe to lower case to match the PrimaryEmissionIndexes fields
         primary_emission_indexes_df.columns = (
             primary_emission_indexes_df.columns.str.lower()
@@ -393,7 +392,6 @@ class PlumePostcombustionEmissionIndexes:
         Returns:
             Final black carbon emission index [M_BC/M_EX].
         """
-
         # Calculate the black carbon postcombustion fraction above 15 km
         bc_high = np.minimum(
             np.full_like(h, ei_bc_p, dtype=np.float64),
@@ -416,7 +414,6 @@ class PlumePostcombustionEmissionIndexes:
     ) -> npt.NDArray[np.floating] | float:
         """Calculate the carbon monoxide postcombustion emission index at lower altitudes.
 
-
         Args:
             h: Altitude [m], valid until co_f>co_p.
             ei_co_p: Primary emission index of carbon monoxide [M_CO/M_EX].
@@ -436,7 +433,6 @@ class PlumePostcombustionEmissionIndexes:
         ei_co_red: npt.NDArray[np.floating] | float = EI_CO_RED,
     ) -> npt.NDArray[np.floating]:
         """Calculate the carbon monoxide postcombustion emission index clamping maximum.
-
 
         Args:
             h: Altitude [m], valid until co_f>co_p.
@@ -510,7 +506,6 @@ class PlumePostcombustion:
         """Evaluate the emissions.
 
         Args:
-            primary_emission_indexes: Primary emission indexes.
             h: Altitude [m]. Defaults to None.
             mass_burned: Altitude [m]. Defaults to None.
 

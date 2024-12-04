@@ -36,11 +36,12 @@ indent-width = 4
 # Assume Python 3.12
 target-version = "py312"
 
+
 [lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
 # Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
-# McCabe complexity (`C901`) by default.
-select = ["E4", "E7", "E9", "F"]
+# McCabe complexity (`C901`) by default. Enable pydocstyle plugin  (`D`)
+select = ["E4", "E7", "E9", "F","D"]
 ignore = []
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -56,6 +57,10 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 # Exclude init files.
 [lint.per-file-ignores]
 "__init__.py" = ["I"]
+
+# Configure pydocstyle to enforce the presence of arguments in docstrings
+[lint.pydocstyle]
+convention = "google"
 
 [format]
 # Like Black, use double quotes for strings.
