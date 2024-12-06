@@ -17,7 +17,7 @@ EI_NOX_S_SL = 33.0 / 1000
 """Mean Secondary NOx emissions at sea level for the Atlas V and Delta IV engines, in kg/kg."""
 EI_CO_RED = 0.0025
 EI_BC_RED = 0.04
-EI_BC_RP1_P = 0.02
+EI_BC_RP1_P = 0.025
 EI_BC_CH4_RED = 0.2
 EI_BC_CH4_P = EI_BC_CH4_RED * EI_BC_RP1_P
 
